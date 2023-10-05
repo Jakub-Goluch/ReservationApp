@@ -3,7 +3,7 @@ from sqlalchemy import Date
 
 
 class ReservationBase(BaseModel):
-    day: Date
+    day: str
     num_of_ppl: int
 
 
