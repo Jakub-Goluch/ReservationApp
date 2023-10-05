@@ -22,8 +22,8 @@ class Reservation(Base):
     day = Column(Date)
     num_of_ppl = Column(Integer)
 
-    client = relationship("Client", back_populates="reservation")
-    table = relationship("Table", back_populates="reservation")
+    client = relationship("Client", back_populates="reservations")
+    table = relationship("Table", back_populates="reservations")
 
 
 class Client(Base):
