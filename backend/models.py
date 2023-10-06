@@ -19,7 +19,7 @@ class Reservation(Base):
     id = Column(Integer, primary_key=True, index=True)
     client_id = Column(Integer, ForeignKey("client.id"))
     table_id = Column(Integer, ForeignKey("table.id"))
-    day = Column(Date)
+    day = Column(String) # zmień na Date i to ogarnij
     num_of_ppl = Column(Integer)
 
     client = relationship("Client", back_populates="reservations")
