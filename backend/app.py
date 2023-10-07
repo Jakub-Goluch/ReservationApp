@@ -57,7 +57,18 @@ def read_reservation(reservation_id: int = 1, db: Session = Depends(get_db)):
     return reservation
 
 
+@app.get("/reservations/", response_model=list[schemas.Reservation])
+def read_reservations(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    reservations = crud.get_reservations(db, skip=skip, limit=limit)
+    return reservations
+
+
 @app.post("/table/{table_id}/{client_id}/reservations/", response_model=schemas.Reservation)
 def create_reservation_for_table(table_id: int, client_id: int, reservation: schemas.ReservationCreate,
                                  db: Session = Depends(get_db)):
     return crud.create_table_reservation(db=db, reservation=reservation, table_id=table_id, client_id=client_id)
+
+
+@app.get("/reservation/{day}/", response_model=list[schemas.Table])
+def read_free_tables_for_date(day: str, num_of_ppl: int = 3, db: Session = Depends(get_db)):
+    return crud.get_free_tables_for_a_date(db, day=day, num_of_ppl=num_of_ppl)

@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, load_only
 
 from . import models, schemas
 
@@ -32,9 +32,17 @@ def get_reservation(db: Session, reservation_id: int):
     return db.query(models.Reservation).filter(models.Reservation.id == reservation_id).first()
 
 
+def get_reservations(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Reservation).offset(skip).limit(limit).all()
+
+
 def create_table_reservation(db: Session, reservation: schemas.ReservationCreate, table_id: int, client_id: int):
     db_reservation = models.Reservation(**reservation.model_dump(), table_id=table_id, client_id=client_id)
     db.add(db_reservation)
     db.commit()
     db.refresh(db_reservation)
     return db_reservation
+
+
+def get_free_tables_for_a_date(db: Session, day: str, num_of_ppl: int):
+    return db.query(models.Table).filter(~models.Table.reservations.any(models.Reservation.day == day)).filter(models.Table.num_of_ppl >= num_of_ppl).order_by(models.Table.num_of_ppl).all()
