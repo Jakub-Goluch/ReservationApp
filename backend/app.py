@@ -1,4 +1,7 @@
+from typing import Annotated
+
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from . import models, schemas, crud
@@ -8,6 +11,8 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 def get_db():
     db = SessionLocal()
@@ -15,6 +20,19 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def fake_decode_token(token):
+    return schemas.Client(name="jan", email=token + "fakedecoded", phone_num="123456789", id="2")
+
+
+async def get_current_client(token: Annotated[str, Depends(oauth2_scheme)]):
+    client = fake_decode_token(token)
+    return client
+
+@app.get("/users/me")
+async def read_users_me(current_user: Annotated[schemas.Client, Depends(get_current_client)]):
+    return current_user
 
 
 @app.post("/client/", response_model=schemas.Client)
