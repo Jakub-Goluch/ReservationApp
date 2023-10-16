@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from . import models, schemas, crud
@@ -26,9 +26,31 @@ def fake_decode_token(token):
     return schemas.Client(name="jan", email=token + "fakedecoded", phone_num="123456789", id="2")
 
 
+def fake_hash_password(password: str):
+    return "fakehashed" + password
+
+
 async def get_current_client(token: Annotated[str, Depends(oauth2_scheme)]):
     client = fake_decode_token(token)
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
     return client
+
+
+@app.post("/token/")
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
+    client = crud.get_client_by_login(db, form_data.username)
+    if not client:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    if not form_data.password == client.password:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+
+    return {"access_token": client.login, "token_type": "bearer"}
+
 
 @app.get("/users/me")
 async def read_users_me(current_user: Annotated[schemas.Client, Depends(get_current_client)]):
@@ -36,8 +58,8 @@ async def read_users_me(current_user: Annotated[schemas.Client, Depends(get_curr
 
 
 @app.post("/client/", response_model=schemas.Client)
-def create_client(client: schemas.ClientCreate, client_id: int, db: Session = Depends(get_db)):
-    db_client = crud.get_client(db, client_id=client_id)
+def create_client(client: schemas.ClientCreate, login: str, db: Session = Depends(get_db)):
+    db_client = crud.get_client(db, login=login)
     if db_client:
         raise HTTPException(status_code=400, detail="Id already taken")
     return crud.create_client(db=db, client=client)
