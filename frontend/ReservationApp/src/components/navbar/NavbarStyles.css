@@ -45,7 +45,7 @@ nav ul li:hover {
   border: solid black 2px;
   border-radius: 25px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all ease-in-out 0.3s;
 }
 
 nav ul li a span {
@@ -65,6 +65,7 @@ nav ul button:hover {
   background: black;
   color: white;
   cursor: pointer;
+  transition: all ease-in-out 0.3s;
 }
 
 .toggle-nav-btn {
