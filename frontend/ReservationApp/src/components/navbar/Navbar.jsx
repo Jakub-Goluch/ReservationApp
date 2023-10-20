@@ -20,6 +20,19 @@ const Navbar = () => {
     setIsNavOpen(!isNavOpen);
   };
 
+  const closeNav = () => {
+    navRef.current.classList.remove("responsive");
+    setIsNavOpen(false);
+  };
+
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+    closeNav();
+  };
+
   return (
     <nav className="nav-items">
       <div className="logo">
@@ -30,14 +43,14 @@ const Navbar = () => {
         className={`nav-menu-items ${isNavOpen ? "responsive" : ""}`}
         ref={navRef}
       >
-        <li>
-          <a href="/">
+        <li onClick={() => scrollToSection("book-now-btn")}>
+          <a>
             <TableRestaurantIcon></TableRestaurantIcon>
             <span>Make a reservation</span>
           </a>
         </li>
-        <li>
-          <a href="/">
+        <li onClick={() => scrollToSection("reservations-header")}>
+          <a>
             <InfoOutlinedIcon></InfoOutlinedIcon>
             <span>My reservations</span>
           </a>

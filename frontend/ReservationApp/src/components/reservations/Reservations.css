@@ -1,0 +1,61 @@
+.main-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(78, 100, 100);
+  margin-top: 60px;
+}
+
+.main-container h2 {
+  margin: 40px 0;
+  color: white;
+  font-weight: 400;
+  font-size: 30px;
+}
+
+.reservation-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.reservation-card {
+  width: 200px;
+  height: 200px;
+  background: white;
+  margin: 20px;
+  border-radius: 35px;
+  box-shadow: 0px -25px 20px -20px rgba(0, 0, 0, 0.45),
+    -25px 0 20px -20px rgba(0, 0, 0, 0.45);
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.people-nr-div,
+.date-div,
+.control-btn-div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.people-nr-div {
+  margin-top: 40px;
+}
+
+.control-btn-div {
+  margin-top: 40px;
+}
+
+.control-btn-div:hover {
+  cursor: pointer;
+}

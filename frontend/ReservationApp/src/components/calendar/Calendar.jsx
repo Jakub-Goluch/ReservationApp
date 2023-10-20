@@ -38,12 +38,12 @@ const Calendar = () => {
   return (
     <div className="calendar-container">
       <div className="calendar-section">
-        <h2>Pick a number of people for reservation:</h2>
+        <h2 id="pick-nr-header">Pick a number of people for reservation:</h2>
         <NumberInput
           aria-label="Demo number input"
           placeholder="Type a number…"
           min="1"
-          max="12"
+          max="8"
         />
       </div>
       <div className="calendar-section">
