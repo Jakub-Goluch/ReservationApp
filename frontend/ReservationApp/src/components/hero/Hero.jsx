@@ -2,6 +2,13 @@ import React from "react";
 import "./HeroStyles.css";
 import KeyboardDoubleArrowDownIcon from "@mui/icons-material/KeyboardDoubleArrowDown";
 
+const scrollToSection = (id) => {
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({ behavior: "smooth" });
+  }
+};
+
 const Hero = () => {
   return (
     <>
@@ -12,8 +19,8 @@ const Hero = () => {
         />
         <div className="main-txt">
           <h1>Find and book table - quickly and easily!</h1>
-          <a href="/">
-            <span>Book Now!</span>
+          <a onClick={() => scrollToSection("book-now-btn")}>
+            <span id="book-now-btn">Book Now!</span>
             <KeyboardDoubleArrowDownIcon />
           </a>
         </div>
