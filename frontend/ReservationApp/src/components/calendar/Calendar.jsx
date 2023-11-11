@@ -1,176 +1,131 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
 import "./CalendarStyles.css";
 import dayjs from "dayjs";
-import {
-  Unstable_NumberInput as BaseNumberInput,
-  numberInputClasses,
-} from "@mui/base/Unstable_NumberInput";
-import { styled } from "@mui/system";
-
-const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
-  return (
-    <BaseNumberInput
-      slots={{
-        root: StyledInputRoot,
-        input: StyledInputElement,
-        incrementButton: StyledButton,
-        decrementButton: StyledButton,
-      }}
-      slotProps={{
-        incrementButton: {
-          children: <span className="arrow">▴</span>,
-        },
-        decrementButton: {
-          children: <span className="arrow">▾</span>,
-        },
-      }}
-      {...props}
-      ref={ref}
-    />
-  );
-});
+import axios from "axios";
 
 const Calendar = () => {
+  const [currentDate, setCurrentDate] = useState(dayjs());
+  const [reservedDates, setReservedDates] = useState([]);
+  const [selectedNumOfPeople, setSelectedNumOfPeople] = useState(1);
+
+  const fetchReservationData = useCallback(async (date, numPeople) => {
+    if (isNaN(numPeople)) {
+      console.error("Invalid number of people");
+      return [];
+    }
+
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/reservation/${date}/?num_of_ppl=${numPeople}`,
+        {
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        console.log(response.data);
+        return response.data;
+      } else {
+        console.error("Error fetching reservation data:", response.status);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching reservation data:", error);
+      return [];
+    }
+  }, []);
+
+  useEffect(() => {
+    const currentMonth = currentDate.format("MM");
+    const daysInMonth = currentDate.daysInMonth();
+    const disabledDays = [];
+
+    const fetchDataForDay = async (day) => {
+      const dateStr = day.format("DD.MM.YYYY");
+      const data = await fetchReservationData(dateStr, selectedNumOfPeople);
+      if (data.length === 0) {
+        disabledDays.push(day.toDate());
+      }
+    };
+
+    const fetchReservationDataForMonth = async () => {
+      const firstDayOfMonth = dayjs(`${currentMonth}-01`, "MM-DD");
+      const promises = Array.from({ length: daysInMonth }, (_, index) => {
+        const currentDay = firstDayOfMonth.add(index, "days");
+        return fetchDataForDay(currentDay);
+      });
+
+      Promise.all(promises).then(() => {
+        setReservedDates(disabledDays);
+      });
+    };
+
+    fetchReservationDataForMonth();
+  }, [currentDate, selectedNumOfPeople, fetchReservationData]);
+
+  const handleReservation = async () => {
+    const formattedDate = currentDate.format("DD.MM.YYYY");
+
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:8000/reservation/${formattedDate}/?num_of_ppl=${selectedNumOfPeople}`,
+        {},
+        {
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        console.log("Reservation successful:", response.data);
+      } else {
+        console.error("Error making reservation:", response.status);
+      }
+    } catch (error) {
+      console.error("Error making reservation:", error);
+    }
+  };
+
+  function disableDates(date) {
+    return reservedDates.some((disabledDate) =>
+      date.isSame(disabledDate, "day")
+    );
+  }
+
   return (
     <div className="calendar-container">
       <div className="calendar-section">
         <h2 id="pick-nr-header">Pick a number of people for reservation:</h2>
-        <NumberInput
-          aria-label="Demo number input"
-          placeholder="Type a number…"
-          min="1"
-          max="8"
+        <input
+          type="number"
+          min={1}
+          max={8}
+          value={selectedNumOfPeople}
+          onChange={(e) => setSelectedNumOfPeople(Number(e.target.value))}
         />
       </div>
       <div className="calendar-section">
         <h2>Pick a date for reservation:</h2>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DemoContainer components={["DesktopDatePicker"]}>
-            <DesktopDatePicker defaultValue={dayjs()} />
-          </DemoContainer>
+          <DesktopDatePicker
+            value={currentDate}
+            minDate={dayjs()}
+            shouldDisableDate={disableDates}
+            onChange={(newDate) => setCurrentDate(newDate)}
+          />
         </LocalizationProvider>
       </div>
-      <button className="reservation-btn">reserve</button>
+      <button className="reservation-btn" onClick={handleReservation}>
+        Reserve
+      </button>
     </div>
   );
 };
-
-const blue = {
-  100: "#DAECFF",
-  200: "#b6daff",
-  400: "#3399FF",
-  500: "#007FFF",
-  600: "#0072E5",
-  900: "#003A75",
-};
-
-const grey = {
-  50: "#f6f8fa",
-  100: "#eaeef2",
-  200: "#d0d7de",
-  300: "#afb8c1",
-  400: "#8c959f",
-  500: "#6e7781",
-  600: "#57606a",
-  700: "#424a53",
-  800: "#32383f",
-  900: "#24292f",
-};
-
-const StyledInputRoot = styled("div")(
-  ({ theme }) => `
-  font-family: IBM Plex Sans, sans-serif;
-  font-weight: 400;
-  border-radius: 8px;
-  color: ${theme.palette.mode === "dark" ? grey[300] : grey[900]};
-  background: ${theme.palette.mode === "dark" ? grey[900] : "#fff"};
-  border: 1px solid ${theme.palette.mode === "dark" ? grey[700] : grey[200]};
-  display: grid;
-  grid-template-columns: 1fr 19px;
-  grid-template-rows: 1fr 1fr;
-  overflow: hidden;
-
-
-  &.${numberInputClasses.focused} {
-    border-color: ${blue[400]};
-    box-shadow: 0 0 0 3px ${
-      theme.palette.mode === "dark" ? blue[600] : blue[200]
-    };
-  }
-
-  &:hover {
-    border-color: ${blue[400]};
-  }
-
-  // firefox
-  &:focus-visible {
-    outline: 0;
-  }
-`
-);
-
-const StyledInputElement = styled("input")(
-  ({ theme }) => `
-  font-size: 0.875rem;
-  font-family: inherit;
-  font-weight: 400;
-  line-height: 1.5;
-  grid-column: 1/2;
-  grid-row: 1/3;
-  color: ${theme.palette.mode === "dark" ? grey[300] : grey[900]};
-  background: inherit;
-  border: none;
-  border-radius: inherit;
-  padding: 8px 12px;
-  outline: 0;
-`
-);
-
-const StyledButton = styled("button")(
-  ({ theme }) => `
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: center;
-  align-items: center;
-  appearance: none;
-  padding: 0;
-  width: 19px;
-  height: 19px;
-  font-family: system-ui, sans-serif;
-  font-size: 0.875rem;
-  line-height: 1;
-  box-sizing: border-box;
-  background: ${theme.palette.mode === "dark" ? grey[900] : "#fff"};
-  border: 0;
-  color: ${theme.palette.mode === "dark" ? grey[300] : grey[900]};
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 120ms;
-
-  &:hover {
-    background: ${theme.palette.mode === "dark" ? grey[800] : grey[50]};
-    border-color: ${theme.palette.mode === "dark" ? grey[600] : grey[300]};
-    cursor: pointer;
-  }
-
-  &.${numberInputClasses.incrementButton} {
-    grid-column: 2/3;
-    grid-row: 1/2;
-  }
-
-  &.${numberInputClasses.decrementButton} {
-    grid-column: 2/3;
-    grid-row: 2/3;
-  }
-
-  & .arrow {
-    transform: translateY(-1px);
-  }
-`
-);
 
 export default Calendar;
