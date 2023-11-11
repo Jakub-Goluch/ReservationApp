@@ -45,4 +45,4 @@ def create_table_reservation(db: Session, reservation: schemas.ReservationCreate
 
 
 def get_free_tables_for_a_date(db: Session, day: str, num_of_ppl: int):
-    return db.query(models.Table).filter(~models.Table.reservations.any(models.Reservation.day == day)).filter(models.Table.num_of_ppl >= num_of_ppl).order_by(models.Table.num_of_ppl).all()
+    return db.query(models.Table).filter(~models.Table.reservations.any(models.Reservation.day == day)).filter(models.Table.num_of_ppl >= num_of_ppl).order_by(models.Table.num_of_ppl).first()
