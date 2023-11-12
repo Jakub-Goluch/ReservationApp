@@ -7,6 +7,10 @@ def get_client(db: Session, client_id: int):
     return db.query(models.Client).filter(models.Client.id == client_id).first()
 
 
+def get_client_by_login(db: Session, login: str):
+    return db.query(models.Client).filter(models.Client.login == login).first()
+
+
 def create_client(db: Session, client: schemas.ClientCreate):
     db_client = models.Client(email=client.email, login=client.login, password=client.password, name=client.name,
                               phone_num=client.phone_num)
@@ -45,4 +49,4 @@ def create_table_reservation(db: Session, reservation: schemas.ReservationCreate
 
 
 def get_free_tables_for_a_date(db: Session, day: str, num_of_ppl: int):
-    return db.query(models.Table).filter(~models.Table.reservations.any(models.Reservation.day == day)).filter(models.Table.num_of_ppl >= num_of_ppl).order_by(models.Table.num_of_ppl).all()
+    return db.query(models.Table).filter(~models.Table.reservations.any(models.Reservation.day == day)).filter(models.Table.num_of_ppl >= num_of_ppl).order_by(models.Table.num_of_ppl).first()
