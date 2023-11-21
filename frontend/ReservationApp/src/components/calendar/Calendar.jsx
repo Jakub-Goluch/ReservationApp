@@ -19,7 +19,7 @@ const Calendar = () => {
 
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/reservation/${date}/?num_of_ppl=${numPeople}`,
+        `http://127.0.0.1:8000/reserve_table?day=${date}&num_of_ppl=${numPeople}`,
         {
           headers: {
             Accept: "application/json",
@@ -70,10 +70,11 @@ const Calendar = () => {
 
   const handleReservation = async () => {
     const formattedDate = currentDate.format("DD.MM.YYYY");
+    let tableId = 0;
 
     try {
-      const response = await axios.post(
-        `http://127.0.0.1:8000/reservation/${formattedDate}/?num_of_ppl=${selectedNumOfPeople}`,
+      const tableIdResponse = await axios.get(
+        `http://127.0.0.1:8000/reserve_table?day=${formattedDate}&num_of_ppl=${selectedNumOfPeople}`,
         {},
         {
           headers: {
@@ -82,13 +83,51 @@ const Calendar = () => {
         }
       );
 
+      if (tableIdResponse.status === 200) {
+        console.log("Reservation successful:", tableIdResponse.data);
+        tableId = tableIdResponse.data.id;
+      } else {
+        console.error("Error fetching tableId:", tableIdResponse.status);
+        window.alert(
+          "Error: Provide correct data while making reservation!",
+          response.status
+        );
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching table Id:", error);
+      window.alert(
+        "Error: Provide correct data while making reservation!",
+        error
+      );
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:8000/table/${tableId}/1/reservations/`, // change to current client id (when authentication done)
+        {
+          day: formattedDate,
+          num_of_ppl: selectedNumOfPeople,
+        },
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
       if (response.status === 200) {
         console.log("Reservation successful:", response.data);
+        window.alert("Successfully created reservation!");
       } else {
         console.error("Error making reservation:", response.status);
+        window.alert("Error while creating reservation:", response.status);
       }
     } catch (error) {
       console.error("Error making reservation:", error);
+      window.alert("Error while creating reservation:", error);
     }
   };
 
