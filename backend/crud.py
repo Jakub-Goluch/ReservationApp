@@ -49,4 +49,23 @@ def create_table_reservation(db: Session, reservation: schemas.ReservationCreate
 
 
 def get_free_tables_for_a_date(db: Session, day: str, num_of_ppl: int):
-    return db.query(models.Table).filter(~models.Table.reservations.any(models.Reservation.day == day)).filter(models.Table.num_of_ppl >= num_of_ppl).order_by(models.Table.num_of_ppl).first()
+    return db.query(models.Table).filter(~models.Table.reservations.any(models.Reservation.day == day)).filter(
+        models.Table.num_of_ppl >= num_of_ppl).order_by(models.Table.num_of_ppl).first()
+
+
+def delete_reservation(db: Session, reservation: schemas.Reservation):
+    db.delete(reservation)
+    db.commit()
+    return reservation
+
+
+def delete_client(db: Session, client: schemas.Client):
+    db.delete(client)
+    db.commit()
+    return client
+
+
+def delete_table(db: Session, table: schemas.Table):
+    db.delete(table)
+    db.commit()
+    return table
