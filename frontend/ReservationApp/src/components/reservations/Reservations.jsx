@@ -1,28 +1,35 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./Reservations.css";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
+import axios from "axios";
 
-const reservationsData = [
-  {
-    id: 1,
-    people: 3,
-    date: "28/02/2023",
-  },
-  {
-    id: 2,
-    people: 8,
-    date: "15/03/2023",
-  },
-  {
-    id: 3,
-    people: 6,
-    date: "02/04/2023",
-  },
-];
+const Reservations = ({ clientId }) => {
+  const [reservationsData, setReservationsData] = useState([]);
 
-const Reservations = () => {
+  useEffect(() => {
+    const fetchClientReservations = async () => {
+      try {
+        const response = await axios.get(
+          `http://127.0.0.1:8000/client/?client_id=${clientId}`
+        );
+
+        if (response.status === 200) {
+          const clientData = response.data;
+          const reservations = clientData.reservations || [];
+          setReservationsData(reservations);
+        } else {
+          console.error("Error fetching client reservations:", response.status);
+        }
+      } catch (error) {
+        console.error("Error fetching client reservations:", error);
+      }
+    };
+
+    fetchClientReservations();
+  }, [clientId]);
+
   return (
     <div className="main-container">
       <h2 id="reservations-header">My reservations:</h2>
@@ -31,11 +38,11 @@ const Reservations = () => {
           <div key={reservation.id} className="reservation-card">
             <div className="people-nr-div">
               <PeopleAltIcon />
-              <span>{reservation.people}</span>
+              <span>{reservation.num_of_ppl}</span>
             </div>
             <div className="date-div">
               <CalendarMonthIcon />
-              <span>{reservation.date}</span>
+              <span>{reservation.day}</span>
             </div>
             <div className="control-btn-div">
               <HighlightOffIcon />
