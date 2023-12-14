@@ -121,3 +121,27 @@ def create_reservation_for_table(table_id: int, client_id: int, reservation: sch
 @app.get("/reserve_table/", response_model=schemas.Table)
 def read_free_tables_for_date(day: str, num_of_ppl: int = 3, db: Session = Depends(get_db)):
     return crud.get_free_tables_for_a_date(db, day=day, num_of_ppl=num_of_ppl)
+
+
+@app.delete("/delete_reservation/{reservation_id}/", response_model=schemas.Reservation)
+def delete_reservation(reservation_id: int, db: Session = Depends(get_db)):
+    reservation = crud.get_reservation(db=db, reservation_id=reservation_id)
+    if reservation is None:
+        raise HTTPException(status_code=404, detail="Reservation not found")
+    return crud.delete_reservation(db=db, reservation=reservation)
+
+
+@app.delete("/delete_user/{client_login}", response_model=schemas.Client)
+def delete_client(client_login: str, db: Session = Depends(get_db)):
+    client = crud.get_client_by_login(db=db, login=client_login)
+    if client is None:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return crud.delete_client(db=db, client=client)
+
+
+@app.delete("/delete_table/{table_id}", response_model=schemas.Table)
+def delete_table(table_id: int, db: Session = Depends(get_db)):
+    table = crud.get_table(db=db, table_id=table_id)
+    if table is None:
+        raise HTTPException(status_code=404, detail="Table not found")
+    return crud.delete_table(db=db, table=table)
