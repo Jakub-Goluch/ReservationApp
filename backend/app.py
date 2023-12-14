@@ -67,8 +67,8 @@ async def read_users_me(current_user: Annotated[schemas.Client, Depends(get_curr
 
 
 @app.post("/client/", response_model=schemas.Client)
-def create_client(client: schemas.ClientCreate, client_id: int, db: Session = Depends(get_db)):
-    db_client = crud.get_client(db, client_id)
+def create_client(client: schemas.ClientCreate, login: str, db: Session = Depends(get_db)):
+    db_client = crud.get_client_by_login(db, login=login)
     if db_client:
         raise HTTPException(status_code=400, detail="Id already taken")
     return crud.create_client(db=db, client=client)
